@@ -9,5 +9,6 @@ with open('log_config.json', 'r') as f:
     log_conf = json.load(f)
 logging.config.dictConfig(log_conf)
 
-# run optimization
-single_objective_optimizer.controller.controller.optimize()
+if __name__ == '__main__':
+    # run optimization
+    single_objective_optimizer.controller.controller.optimize()
