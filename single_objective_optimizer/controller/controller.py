@@ -1,3 +1,4 @@
+import logging
 import random
 
 import numpy as np
@@ -5,6 +6,8 @@ import numpy as np
 from single_objective_optimizer.model.common_settings import *
 from single_objective_optimizer.model.dd_cmaes_optimizer import DDCMAES
 from single_objective_optimizer.model import functions_to_be_optimized
+
+logger = logging.getLogger('info_logger')
 
 
 def create_output_file():
@@ -35,14 +38,10 @@ def optimize(seed_num=None):
         with open('Generation.csv', 'w') as f:
             print(g + 1, file=f)
         optimizer.proceed_generation()
-        print('generation:', optimizer.generation, sep=' ')
-        print('best solution:', optimizer.best_solution, sep='\n')
-        print('best evaluation:', optimizer.best_eval, sep=' ')
+        logger.info('generation {} end'.format(g + 1))
         with open('convergence_history.csv', 'a') as f:
             print(g + 1, optimizer.num_of_evaluation, optimizer.best_eval, sep=',', file=f)
         with open('best_solution_history.csv', 'a') as f:
             print(*optimizer.best_solution, sep=',', file=f)
 
-    print('optimization end.')
-    print('best solution:', optimizer.best_solution, sep='\n')
-    print('best evaluation:', optimizer.best_eval, sep=' ')
+    logger.info('optimization end.')
