@@ -1,18 +1,17 @@
-import os
 import random
 
 import numpy as np
 
 from single_objective_optimizer.model.common_settings import *
-from single_objective_optimizer.model.dd_cmaes_optimizer import DD_CMAES
+from single_objective_optimizer.model.dd_cmaes_optimizer import DDCMAES
 from single_objective_optimizer.model import functions_to_be_optimized
 
 
 def create_output_file():
     # create output file
-    with open('convergence_history.csv', 'w') as f:
+    with open('convergence_history.csv', 'w'):
         pass
-    with open('best_solution_history.csv', 'w') as f:
+    with open('best_solution_history.csv', 'w'):
         pass
 
 
@@ -29,7 +28,7 @@ def optimize(seed_num=None):
     create_output_file()
 
     # create optimizer
-    optimizer = DD_CMAES(functions_to_be_optimized.sphere_function)
+    optimizer = DDCMAES(functions_to_be_optimized.sphere_function)
 
     # optimization iteration
     for g in range(generation_max):

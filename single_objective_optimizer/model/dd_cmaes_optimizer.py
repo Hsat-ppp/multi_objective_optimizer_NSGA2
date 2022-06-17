@@ -13,7 +13,7 @@ from single_objective_optimizer.model import optimizer
 approximated_E_normal = (np.sqrt(n) * (1.0 - (1.0 / (4.0 * n)) + (1.0 / (21.0 * n * n))))
 
 
-class DD_CMAES(optimizer.OPTIMIZER):
+class DDCMAES(optimizer.OPTIMIZER):
     """
     dd-CMA-ES optimizer class
     """
@@ -254,7 +254,8 @@ class DD_CMAES(optimizer.OPTIMIZER):
         self.gamma_sigma = ((1.0 - self.c_sigma)**2) * self.gamma_sigma + self.c_sigma * (2.0 - self.c_sigma)
         self.step_size = (self.step_size
                           * np.exp((self.c_sigma / self.d_sigma)
-                                   * ((np.linalg.norm(self.evol_path_sigma) / approximated_E_normal) - np.sqrt(self.gamma_sigma))))
+                                   * ((np.linalg.norm(self.evol_path_sigma) / approximated_E_normal)
+                                      - np.sqrt(self.gamma_sigma))))
 
     def evolution_path_update(self):
         """
