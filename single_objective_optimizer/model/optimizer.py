@@ -1,15 +1,9 @@
 """
 General optimizer class.
 """
-
-import copy
-import sys
-from pathlib import Path
-
-import matplotlib.pyplot as plt
 import numpy as np
 
-from common_settings import *
+from single_objective_optimizer.model.common_settings import *
 
 
 class OPTIMIZER(object):

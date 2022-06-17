@@ -3,14 +3,12 @@ dd-CMA-ES optimizer.
 """
 
 import copy
-import sys
-from pathlib import Path
 
 import matplotlib.pyplot as plt
 import numpy as np
 
-from common_settings import *
-import optimizer
+from single_objective_optimizer.model.common_settings import *
+from single_objective_optimizer.model import optimizer
 
 approximated_E_normal = (np.sqrt(n) * (1.0 - (1.0 / (4.0 * n)) + (1.0 / (21.0 * n * n))))
 
@@ -49,7 +47,7 @@ class DD_CMAES(optimizer.OPTIMIZER):
         self.mu_eff_minus = (np.sum(self.weight_pre[self.mu:])**2) / (np.sum(self.weight_pre[self.mu:]**2))
         self.c_m = 1.0
 
-        # step_size control
+        # step_size controller
         self.c_sigma = (self.mu_eff + 2.0) / (n + self.mu_eff + 5.0)
         self.d_sigma = 1.0 + 2.0 * np.max([0, np.sqrt((self.mu_eff - 1.0) / (n + 1.0)) - 1.0]) + self.c_sigma
 
@@ -130,8 +128,8 @@ class DD_CMAES(optimizer.OPTIMIZER):
         self.x = np.zeros((self.population_size, n))
         self.y = np.zeros((self.population_size, n))
         self.z = np.zeros((self.population_size, n))
-        self.y_rescaled = np.zeros((self.population_size, n))  # rescaled vec to control positive definiteness
-        self.z_rescaled = np.zeros((self.population_size, n))  # rescaled vec to control positive definiteness
+        self.y_rescaled = np.zeros((self.population_size, n))  # rescaled vec to controller positive definiteness
+        self.z_rescaled = np.zeros((self.population_size, n))  # rescaled vec to controller positive definiteness
         self.evaluation_vec = np.zeros(self.population_size)
 
         # mean and step size
@@ -284,7 +282,7 @@ class DD_CMAES(optimizer.OPTIMIZER):
 
     def rescale_y_and_z(self):
         """
-        Rescale y and z, which makes it easy to control positive definiteness of cov matrix.
+        Rescale y and z, which makes it easy to controller positive definiteness of cov matrix.
         :return:
         """
         for i in range(self.population_size):
