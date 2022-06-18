@@ -9,6 +9,7 @@ import tqdm
 from single_objective_optimizer.model.common_settings import *
 from single_objective_optimizer.model.dd_cmaes_optimizer import DDCMAES
 from single_objective_optimizer.model import functions_to_be_optimized
+from single_objective_optimizer.utils.utils import set_seed_num
 
 logger = logging.getLogger('info_logger')
 
@@ -22,6 +23,8 @@ def get_argparser_options():
                         help='number of generations (iterations)')
     parser.add_argument('-p', '--population_size', default=int(4+np.floor(3*np.log(n))), type=int,
                         help='population size or number of individuals.')
+    parser.add_argument('-s', '--seed_num', type=int,
+                        help='seed number for reproduction.')
     parser.add_argument('-q', '--quiet', action='store_true',
                         help='if set, we disables progress bar.')
     args = parser.parse_args()
@@ -45,13 +48,7 @@ def optimize(seed_num=None):
                                       'Got: {}'.format(args.population_size)
 
     # fix seed number and save
-    if seed_num is None:
-        seed_num = np.random.randint(0, (2**30)-1)
-    random.seed(seed_num)
-    np.random.seed(seed_num)
-    os.environ['PYTHONHASHSEED'] = str(seed_num)
-    with open('seed_num.csv', 'w') as f:
-        print(seed_num, sep=',', file=f)
+    set_seed_num(args.seed_num)
 
     # create output file and folder
     create_output_file()
