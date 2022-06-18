@@ -1,7 +1,6 @@
 import argparse
+import json
 import logging
-import os
-import random
 
 import numpy as np
 import tqdm
@@ -39,13 +38,18 @@ def create_output_file():
         pass
 
 
-def optimize(seed_num=None):
+def optimize():
     # get args
     args = get_argparser_options()
     assert args.num_of_generations >= 1, 'Option "num_of_generations" need to be positive. ' \
                                          'Got: {}'.format(args.num_of_generations)
     assert args.population_size >= 1, 'Option "population_size" need to be positive. ' \
                                       'Got: {}'.format(args.population_size)
+    # save args
+    logger.info('args options')
+    logger.info(args.__dict__)
+    with open('args.json', 'w') as f:
+        json.dump(args.__dict__, f, indent=4)
 
     # fix seed number and save
     set_seed_num(args.seed_num)
@@ -73,7 +77,5 @@ def optimize(seed_num=None):
         with open('best_solution_history.csv', 'a') as f:
             print(*optimizer.best_solution, sep=',', file=f)
 
-    logger.info('''Optimization end.
-                Total generations: {0}
-                Best eval: {1}
-                '''.format(args.num_of_generations, optimizer.best_eval))
+    logger.info('Optimization end. Total generations: {0}, Best eval: {1}'.format(
+        args.num_of_generations, optimizer.best_eval))
