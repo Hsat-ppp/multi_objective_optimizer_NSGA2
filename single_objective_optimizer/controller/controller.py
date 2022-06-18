@@ -1,5 +1,6 @@
 import argparse
 import logging
+import os
 import random
 
 import numpy as np
@@ -48,6 +49,7 @@ def optimize(seed_num=None):
         seed_num = np.random.randint(0, (2**30)-1)
     random.seed(seed_num)
     np.random.seed(seed_num)
+    os.environ['PYTHONHASHSEED'] = str(seed_num)
     with open('seed_num.csv', 'w') as f:
         print(seed_num, sep=',', file=f)
 
