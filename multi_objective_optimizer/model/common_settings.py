@@ -1,4 +1,7 @@
 n = 2
+nobj = 2
+
+result_dir = 'result/'
 
 INF = 1E+30
 
