@@ -1,10 +1,13 @@
 import os
 
-from common_settings import *
+from multi_objective_optimizer.model.common_settings import *
 import numpy as np
 
 
 def DTLZ2(data):
+    """DRLZ2 function
+    x : [0, 1]
+    """
     with open('Generation.csv', 'r') as f:
         g = int(f.readline())
     os.mkdir(result_dir + 'Generation' + str(g))
@@ -21,10 +24,16 @@ def DTLZ2(data):
 
 
 def zero_constraint(data):
+    """for functions with no constraints
+    """
     return np.zeros(data.shape[0])
 
 
-def SRN(data):  # only assuming n=2 and nobj=2
+def SRN(data):
+    """SRN function
+    data: [-20, 20]
+    only assuming n=2 and nobj=2
+    """
     assert data.shape[1] == 2, 'SRN function only accepts 2-D input.'
     assert nobj == 2, 'SRN function only accepts 2 objectives.'
     with open('Generation.csv', 'r') as f:
@@ -37,7 +46,11 @@ def SRN(data):  # only assuming n=2 and nobj=2
     return evals
 
 
-def SRN_constraint(data):  # only assuming n=2 and nobj=2
+def SRN_constraint(data):
+    """SRN function
+    data: [-20, 20]
+    only assuming n=2 and nobj=2
+    """
     evals = np.zeros(data.shape[0])
     # 違反量を測るので，マイナスは0に丸める
     evals += np.max(np.stack([np.zeros(data.shape[0]), ((data[:, 0]**2 + data[:, 1]**2) - 255)], axis=1), axis=1)

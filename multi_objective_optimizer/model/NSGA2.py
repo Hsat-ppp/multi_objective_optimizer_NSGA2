@@ -1,23 +1,27 @@
+import os
 from copy import deepcopy
 import random
 
 import numpy as np
 
-from common_settings import *
-
-l_b = -INF
-u_b = INF
+from multi_objective_optimizer.model.common_settings import *
 
 
 class NSGA2(object):
-    def __init__(self, npop, nc, eval_func, constraint_func, crossover_probability=0.9, eta_d=2):
+    def __init__(self, npop, nc, eval_func, constraint_func, init_range_lower=0, init_range_upper=1,
+                 boundary_lower=0, boundary_upper=1, crossover_probability=0.9, eta_d=2):
         """
         GA class.
         :param npop: number of population.
         :param nc: number of children.
         :param eval_func: evaluation function to be optimized.
-                          Note: return of eval_func must be matrix of row: indivisuals, col: corresponding objectives
+                          Note: return of eval_func must be matrix of row: individuals, col: corresponding objectives
         :param constraint_func: constraint function to be evaluated.
+                          Note: return of eval_func must be a vector of dimension (individuals, )
+        :param init_range_lower: range of init population (lower)
+        :param init_range_upper: range of init population (upper)
+        :param boundary_lower: boundary of variables (lower)
+        :param boundary_upper: boundary of variables (upper)
         :param crossover_probability: crossover probability for SBX.
         :param eta_d: eta_d for SBX.
         """
@@ -33,14 +37,22 @@ class NSGA2(object):
         self.Q = []  # 新集団
         self.F = [[] for v in range(10000)]  # Rをランクごとに分けて格納したもの
         # 各個体には，後ろに[評価関数値1-m,被ドミナント数，ランク，混雑度, [その個体にdominateされている個体番号群(Sp)], ペナルティを満たすかどうか]が付与されていることに注意
+        # evaluation functions
         self.eval_func = eval_func
         self.constraint_func = constraint_func  # amount of constraint violation
+        # ranges and boundary
+        self.init_range_lower = init_range_lower
+        self.init_range_upper = init_range_upper
+        self.boundary_lower = boundary_lower
+        self.boundary_upper = boundary_upper
+        # create output folder
+        os.mkdir(result_dir)
 
     # 初期集団の生成と評価値の計算を行う
     def neutralization(self):
         for i in range(0, self.npop):
-            self.P.append(list(np.random.normal(size=n)))  # neutralization
-            # self.P.append(list(a+(b-a)*np.random.rand(n)))  # neutralization
+            # self.P.append(list(np.random.normal(size=n)))  # neutralization
+            self.P.append(list(self.init_range_lower + (self.init_range_upper - self.init_range_lower) * np.random.rand(n)))  # neutralization
         self.now_gen = 99999
         with open('Generation.csv', 'w') as f:
             print(str(self.now_gen), file=f)
@@ -171,11 +183,11 @@ class NSGA2(object):
                     child1.append(parents[0, j])
                     child2.append(parents[1, j])
             child1 = np.array(child1)
-            child1 = np.where(child1 > u_b, u_b, child1)
-            child1 = np.where(child1 < l_b, l_b, child1)
+            child1 = np.where(child1 > self.boundary_upper, self.boundary_upper, child1)
+            child1 = np.where(child1 < self.boundary_lower, self.boundary_lower, child1)
             child2 = np.array(child2)
-            child2 = np.where(child2 > u_b, u_b, child2)
-            child2 = np.where(child2 < l_b, l_b, child2)
+            child2 = np.where(child2 > self.boundary_upper, self.boundary_upper, child2)
+            child2 = np.where(child2 < self.boundary_lower, self.boundary_lower, child2)
             children.append(deepcopy(list(child1)))
             children.append(deepcopy(list(child2)))
         return children

@@ -19,9 +19,9 @@ def get_argparser_options():
                                     ''')
     parser.add_argument('-g', '--num_of_generations', default=200, type=int,
                         help='number of generations (iterations)')
-    parser.add_argument('-p', '--population_size', default=300, type=int,
+    parser.add_argument('-p', '--population_size', default=n*20, type=int,
                         help='population size or number of individuals.')
-    parser.add_argument('-c', '--children_size', default=128, type=int,
+    parser.add_argument('-c', '--children_size', default=n*5, type=int,
                         help='population size or number of individuals.')
     parser.add_argument('-s', '--seed_num', type=int,
                         help='seed number for reproduction.')
@@ -50,8 +50,12 @@ def optimize():
     set_seed_num(args.seed_num)
 
     # create optimizer
-    optimizer = NSGA2(npop=args.population_size, nc=args.children_size, eval_func=functions_to_be_optimized.DTLZ2,
-                      constraint_func=functions_to_be_optimized.zero_constraint)
+    optimizer = NSGA2(npop=args.population_size, nc=args.children_size,
+                      eval_func=functions_to_be_optimized.SRN,
+                      constraint_func=functions_to_be_optimized.SRN_constraint,
+                      init_range_lower=-20, init_range_upper=20,
+                      boundary_lower=-20, boundary_upper=20
+                      )
     optimizer.neutralization()
 
     # optimization iteration
