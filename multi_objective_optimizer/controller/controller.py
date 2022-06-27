@@ -4,7 +4,7 @@ import logging
 
 import tqdm
 
-from multi_objective_optimizer.model.common_settings import *
+from multi_objective_optimizer.model.settings import *
 from multi_objective_optimizer.model.NSGA2 import NSGA2
 from multi_objective_optimizer.model import functions_to_be_optimized
 from multi_objective_optimizer.utils.utils import set_seed_num

@@ -4,7 +4,7 @@ import random
 
 import numpy as np
 
-from multi_objective_optimizer.model.common_settings import *
+from multi_objective_optimizer.model.settings import *
 
 
 class NSGA2(object):
@@ -129,7 +129,7 @@ class NSGA2(object):
             self.F[i][0][-3] = INF
             self.F[i][l-1][-3] = INF
             for j in range(1, l-1, 1):
-                self.F[i][j][-3] = self.F[i][j][-3] + (self.F[i][j+1][-1*(m+5+1)] - self.F[i][j-1][-1*(m+5+1)]) / (fmax - fmin)
+                self.F[i][j][-3] = self.F[i][j][-3] + (self.F[i][j+1][-1*(m+5+1)] - self.F[i][j-1][-1*(m+5+1)]) / (fmax - fmin + eps)
 
     def step(self):
         self.now_gen += 1

@@ -1,6 +1,6 @@
 import os
 
-from multi_objective_optimizer.model.common_settings import *
+from multi_objective_optimizer.model.settings import *
 import numpy as np
 
 
