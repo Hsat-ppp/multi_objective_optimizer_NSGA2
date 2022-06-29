@@ -1,4 +1,4 @@
-# multi_objective_optimizer_CMAES
+# multi_objective_optimizer_NSGA2
 This is a multi objective optimizer repository based on NSGA2. Please refer to the original paper [1] for detail.
 
 ## How to run
