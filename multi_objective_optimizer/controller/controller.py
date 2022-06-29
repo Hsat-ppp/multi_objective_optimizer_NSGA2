@@ -14,8 +14,7 @@ logger = logging.getLogger('info_logger')
 
 def get_argparser_options():
     parser = argparse.ArgumentParser(description='''
-                                    This is a single objective optimizer 
-                                    based on CMA-ES and dd-CMA-ES, its advanced version.
+                                    This is a multi objective optimizer based on NSGA2.
                                     ''')
     parser.add_argument('-g', '--num_of_generations', default=200, type=int,
                         help='number of generations (iterations)')
