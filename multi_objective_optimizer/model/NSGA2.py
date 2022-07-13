@@ -53,9 +53,9 @@ class NSGA2(object):
         for i in range(0, self.npop):
             # self.P.append(list(np.random.normal(size=n)))  # neutralization
             self.P.append(list(self.init_range_lower + (self.init_range_upper - self.init_range_lower) * np.random.rand(n)))  # neutralization
-        self.now_gen = 99999
+        self.now_gen = -1
         with open('Generation.csv', 'w') as f:
-            print(str(self.now_gen), file=f)
+            print(str(self.now_gen + 1), file=f)
         J = self.eval_func(np.array(self.P).copy())
         J_constraint = self.constraint_func(np.array(self.P).copy())
         # 情報の付与
@@ -132,7 +132,6 @@ class NSGA2(object):
                 self.F[i][j][-3] = self.F[i][j][-3] + (self.F[i][j+1][-1*(m+5+1)] - self.F[i][j-1][-1*(m+5+1)]) / (fmax - fmin + eps)
 
     def step(self):
-        self.now_gen += 1
         self.Q = self.make_new_pop()
         J = self.eval_func(np.array(self.Q).copy())
         if np.any(np.isnan(J)):
@@ -160,6 +159,7 @@ class NSGA2(object):
         self.crowding_distance_assignment(i)
         self.F[i] = sorted(self.F[i], key=lambda p: p[-3], reverse=True)  # 距離の大きい順にソート
         self.P = deepcopy(self.P + self.F[i][0:(self.npop-len(self.P))])
+        self.now_gen += 1
 
     def make_new_pop(self):  # SBX
         children = []
