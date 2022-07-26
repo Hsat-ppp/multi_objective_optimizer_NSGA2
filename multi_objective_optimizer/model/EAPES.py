@@ -311,6 +311,8 @@ class EAPES(object):
             self.F[i] = sorted(self.F[i], key=lambda p: p[-3], reverse=True)  # 距離の大きい順にソート
             self.IP = deepcopy(self.IP + self.F[i][0:(self.Inpop - len(self.IP))])
             self.now_gen += 1
+        # Pareto解の統合
+        self.P = deepcopy(self.FP + self.IP)
 
     def make_new_pop(self):  # SBX
         children = []
