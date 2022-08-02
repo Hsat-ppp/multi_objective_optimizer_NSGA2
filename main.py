@@ -12,4 +12,5 @@ logging.config.dictConfig(log_conf)
 
 if __name__ == '__main__':
     # run optimization
+    # multi_objective_optimizer.controller.controller.optimize()
     multi_objective_optimizer.controller.controller_EAPES.optimize()

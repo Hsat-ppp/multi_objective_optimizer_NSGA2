@@ -56,3 +56,32 @@ def SRN_constraint(data):
     evals += np.max(np.stack([np.zeros(data.shape[0]), ((data[:, 0]**2 + data[:, 1]**2) - 255)], axis=1), axis=1)
     evals += np.max(np.stack([np.zeros(data.shape[0]), ((data[:, 0] - 3 * data[:, 1]) - (-10))], axis=1), axis=1)
     return evals
+
+
+def TNK(data):
+    """TNK function
+    data: [0, PI]
+    only assuming n=2 and nobj=2
+    """
+    assert data.shape[1] == 2, 'SRN function only accepts 2-D input.'
+    assert nobj == 2, 'SRN function only accepts 2 objectives.'
+    with open('Generation.csv', 'r') as f:
+        g = int(f.readline())
+    os.mkdir(result_dir + 'Generation' + str(g))
+
+    evals = np.zeros((data.shape[0], nobj))
+    evals[:, 0] = data[:, 0].copy()
+    evals[:, 1] = data[:, 1].copy()
+    return evals
+
+
+def TNK_constraint(data):
+    """TNK function
+    data: [0, PI]
+    only assuming n=2 and nobj=2
+    """
+    evals = np.zeros(data.shape[0])
+    # 違反量を測るので，マイナスは0に丸める
+    evals += np.max(np.stack([np.zeros(data.shape[0]), ((-1 * data[:, 0]**2 - 1 * data[:, 1]**2 + 1 + 0.1 * np.cos(16 * np.arctan(data[:, 0] / (data[:, 1] + 1e-3)))) - 0)], axis=1), axis=1)
+    evals += np.max(np.stack([np.zeros(data.shape[0]), (((data[:, 0] - 0.5)**2 + (data[:, 1] - 0.5)**2) - (0.5))], axis=1), axis=1)
+    return evals

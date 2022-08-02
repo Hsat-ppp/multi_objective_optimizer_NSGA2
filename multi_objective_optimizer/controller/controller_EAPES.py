@@ -2,6 +2,7 @@ import argparse
 import json
 import logging
 
+import numpy as np
 import tqdm
 
 from multi_objective_optimizer.model.settings import *
@@ -16,11 +17,11 @@ def get_argparser_options():
     parser = argparse.ArgumentParser(description='''
                                     This is a multi objective optimizer based on NSGA2.
                                     ''')
-    parser.add_argument('-g', '--num_of_generations', default=200, type=int,
+    parser.add_argument('-g', '--num_of_generations', default=100, type=int,
                         help='number of generations (iterations)')
     parser.add_argument('-fp', '--feasible_population_size', default=n*20, type=int,
                         help='feasible population size or number of individuals.')
-    parser.add_argument('-ip', '--infeasible_population_size', default=n*20, type=int,
+    parser.add_argument('-ip', '--infeasible_population_size', default=n*5, type=int,
                         help='infeasible population size or number of individuals.')
     parser.add_argument('-c', '--children_size', default=n*5, type=int,
                         help='population size or number of individuals.')
@@ -55,10 +56,10 @@ def optimize():
     # create optimizer
     optimizer = EAPES(Fnpop=args.feasible_population_size, Inpop=args.infeasible_population_size,
                       nc=args.children_size,
-                      eval_func=functions_to_be_optimized.SRN,
-                      constraint_func=functions_to_be_optimized.SRN_constraint,
-                      init_range_lower=-20, init_range_upper=20,
-                      boundary_lower=-20, boundary_upper=20
+                      eval_func=functions_to_be_optimized.TNK,
+                      constraint_func=functions_to_be_optimized.TNK_constraint,
+                      init_mode='uniform', init_range_lower=0, init_range_upper=np.pi,
+                      boundary_lower=0, boundary_upper=np.pi
                       )
     optimizer.neutralization()
 

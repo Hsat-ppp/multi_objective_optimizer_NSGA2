@@ -1,15 +1,21 @@
 import os
 from copy import deepcopy
 import random
+import logging
 
 import numpy as np
 
+import multi_objective_optimizer.model.operator
 from multi_objective_optimizer.model.settings import *
+
+logger = logging.getLogger('info_logger')
 
 
 class NSGA2(object):
-    def __init__(self, npop, nc, eval_func, constraint_func, init_range_lower=0, init_range_upper=1,
-                 boundary_lower=0, boundary_upper=1, crossover_probability=0.9, eta_d=2):
+    def __init__(self, npop, nc, eval_func, constraint_func,
+                 init_mode='gaussian', init_range_lower=0, init_range_upper=1,
+                 boundary_lower=0, boundary_upper=1,
+                 eta_d=2, tournament_size=2, mutation_probability=0.05):
         """
         GA class.
         :param npop: number of population.
@@ -18,18 +24,21 @@ class NSGA2(object):
                           Note: return of eval_func must be matrix of row: individuals, col: corresponding objectives
         :param constraint_func: constraint function to be evaluated.
                           Note: return of eval_func must be a vector of dimension (individuals, )
-        :param init_range_lower: range of init population (lower)
-        :param init_range_upper: range of init population (upper)
+        :param init_mode: initialization mode ('uniform' or 'gaussian').
+        :param init_range_lower: range of init population (lower): only for uniform initialization
+        :param init_range_upper: range of init population (upper): only for uniform initialization
         :param boundary_lower: boundary of variables (lower)
         :param boundary_upper: boundary of variables (upper)
-        :param crossover_probability: crossover probability for SBX.
-        :param eta_d: eta_d for SBX.
+        :param eta_d: eta_d for SBX which controls range of children creation.
+        :param tournament_size: number of tournament participants in selection.
+        :param mutation_probability: probability for mutation.
         """
         # 集団など，GA内変数
         self.npop = npop
         self.nc = nc
-        self.crossover_probability = crossover_probability
         self.eta_d = eta_d
+        self.tournament_size = tournament_size
+        self.mutation_probability = mutation_probability
         self.first_group = np.zeros((self.npop, n))
         self.now_gen = 0
         self.R = []  # 旧集団と新集団の結合したもの
@@ -41,6 +50,7 @@ class NSGA2(object):
         self.eval_func = eval_func
         self.constraint_func = constraint_func  # amount of constraint violation
         # ranges and boundary
+        self.init_mode = init_mode
         self.init_range_lower = init_range_lower
         self.init_range_upper = init_range_upper
         self.boundary_lower = boundary_lower
@@ -51,8 +61,13 @@ class NSGA2(object):
     # 初期集団の生成と評価値の計算を行う
     def neutralization(self):
         for i in range(0, self.npop):
-            # self.P.append(list(np.random.normal(size=n)))  # neutralization
-            self.P.append(list(self.init_range_lower + (self.init_range_upper - self.init_range_lower) * np.random.rand(n)))  # neutralization
+            if self.init_mode == 'gaussian':
+                self.P.append(list(np.random.normal(size=n)))  # neutralization
+            elif self.init_mode == 'uniform':
+                self.P.append(list(self.init_range_lower + (self.init_range_upper - self.init_range_lower) * np.random.rand(n)))  # neutralization
+            else:
+                logger.error('unknown init mode.')
+                exit(-1)
         self.now_gen = -1
         with open('Generation.csv', 'w') as f:
             print(str(self.now_gen + 1), file=f)
@@ -68,6 +83,16 @@ class NSGA2(object):
             self.P[i].append([])
             self.P[i].append(J_constraint[i])
         self.now_gen = 0
+
+        # initial assignment
+        self.R = deepcopy(self.P)
+        self.fast_NS()
+        self.P = []
+        i = 0
+        while self.F[i]:
+            self.crowding_distance_assignment(i)
+            self.P = self.P + deepcopy(self.F[i])
+            i += 1
         return
 
     @staticmethod
@@ -151,41 +176,60 @@ class NSGA2(object):
             self.Q[i].append(J_constraint[i])
         self.R = deepcopy(self.P + self.Q)
         self.fast_NS()
+        i = 0
+        while self.F[i]:
+            self.crowding_distance_assignment(i)
+            i += 1
         self.P = []
         i = 0
         while len(self.P)+len(self.F[i]) <= self.npop:
             self.P = deepcopy(self.P + self.F[i])
             i += 1
-        self.crowding_distance_assignment(i)
         self.F[i] = sorted(self.F[i], key=lambda p: p[-3], reverse=True)  # 距離の大きい順にソート
         self.P = deepcopy(self.P + self.F[i][0:(self.npop-len(self.P))])
         self.now_gen += 1
 
+    def selection_tournament(self, num_ind):
+
+        def select_one_from_two_for_tournament(ind1, ind2):
+            if self.comparison(ind1, ind2):
+                return deepcopy(ind1)
+            elif self.comparison(ind2, ind1):
+                return deepcopy(ind2)
+            if ind1[-3] > ind2[-3]:
+                return deepcopy(ind1)
+            else:
+                return deepcopy(ind2)
+
+        chosen_inds = []
+        for i in range(num_ind):
+            participants = [random.choice(self.P) for _ in range(self.tournament_size)]
+            survived_inds = []
+            survived_inds_old = deepcopy(participants)
+            while len(survived_inds_old) > 1:
+                survived_inds = []
+                for k in range(0, len(survived_inds_old) - 1, 2):
+                    survived_inds.append(select_one_from_two_for_tournament(survived_inds_old[k], survived_inds_old[k+1]))
+                if len(survived_inds_old) % 2 == 1:  # あまりとのトーナメント
+                    survived_inds_last = survived_inds[-1]
+                    survived_inds.pop()
+                    survived_inds.append(select_one_from_two_for_tournament(survived_inds_last, survived_inds_old[-1]))
+                survived_inds_old = deepcopy(survived_inds)
+            chosen_inds.append(deepcopy(survived_inds[0]))
+        return chosen_inds
+
     def make_new_pop(self):  # SBX
         children = []
-        population = deepcopy(self.P)
-        population = np.array([l[:n] for l in population])
         while len(children) < self.nc:
-            idx = random.sample(range(0, len(self.P), 1), k=2)
-            child1 = []
-            child2 = []
-            parents = population[idx, :].copy()
-            for j in range(n):
-                if np.random.rand() < self.crossover_probability:
-                    u = random.uniform(0, 1)
-                    if u <= 0.5:
-                        beta = (2*u)**(1.0 / (self.eta_d+1))
-                    else:
-                        beta = (1.0 / (2*(1-u)))**(1.0 / (self.eta_d+1))
-                    child1.append(0.5*((1+beta)*parents[0, j] + (1-beta)*parents[1, j]))
-                    child2.append(0.5*((1-beta)*parents[0, j] + (1+beta)*parents[1, j]))
-                else:
-                    child1.append(parents[0, j])
-                    child2.append(parents[1, j])
-            child1 = np.array(child1)
+            parents = self.selection_tournament(2)
+            # parents = [random.choice(self.P) for _ in range(2)]
+            parent1 = deepcopy(parents[0][:n])
+            parent2 = deepcopy(parents[1][:n])
+            child1, child2 = multi_objective_optimizer.model.operator.crossover_sbx(parent1, parent2, self.eta_d)
+            child1 = multi_objective_optimizer.model.operator.mutation_gaussian(child1, self.mutation_probability)
+            child2 = multi_objective_optimizer.model.operator.mutation_gaussian(child2, self.mutation_probability)
             child1 = np.where(child1 > self.boundary_upper, self.boundary_upper, child1)
             child1 = np.where(child1 < self.boundary_lower, self.boundary_lower, child1)
-            child2 = np.array(child2)
             child2 = np.where(child2 > self.boundary_upper, self.boundary_upper, child2)
             child2 = np.where(child2 < self.boundary_lower, self.boundary_lower, child2)
             children.append(deepcopy(list(child1)))
