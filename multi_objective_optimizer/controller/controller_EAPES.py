@@ -59,7 +59,7 @@ def optimize():
                       eval_func=functions_to_be_optimized.TNK,
                       constraint_func=functions_to_be_optimized.TNK_constraint,
                       init_mode='uniform', init_range_lower=0, init_range_upper=np.pi,
-                      boundary_lower=0, boundary_upper=np.pi
+                      boundary_lower=0, boundary_upper=np.pi,
                       )
     optimizer.neutralization()
 

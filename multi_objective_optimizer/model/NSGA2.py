@@ -15,6 +15,7 @@ class NSGA2(object):
     def __init__(self, npop, nc, eval_func, constraint_func,
                  init_mode='gaussian', init_range_lower=0, init_range_upper=1,
                  boundary_lower=0, boundary_upper=1,
+                 selection_mode='tournament',
                  eta_d=2, tournament_size=2, mutation_probability=0.05):
         """
         GA class.
@@ -29,6 +30,7 @@ class NSGA2(object):
         :param init_range_upper: range of init population (upper): only for uniform initialization
         :param boundary_lower: boundary of variables (lower)
         :param boundary_upper: boundary of variables (upper)
+        :param selection_mode: selection mode ('tournament' or 'random').
         :param eta_d: eta_d for SBX which controls range of children creation.
         :param tournament_size: number of tournament participants in selection.
         :param mutation_probability: probability for mutation.
@@ -36,6 +38,7 @@ class NSGA2(object):
         # 集団など，GA内変数
         self.npop = npop
         self.nc = nc
+        self.selection_mode = selection_mode
         self.eta_d = eta_d
         self.tournament_size = tournament_size
         self.mutation_probability = mutation_probability
@@ -221,8 +224,13 @@ class NSGA2(object):
     def make_new_pop(self):  # SBX
         children = []
         while len(children) < self.nc:
-            parents = self.selection_tournament(2)
-            # parents = [random.choice(self.P) for _ in range(2)]
+            if self.selection_mode == 'tournament':
+                parents = self.selection_tournament(2)
+            elif self.selection_mode == 'random':
+                parents = [random.choice(self.P) for _ in range(2)]
+            else:
+                logger.error('unknown selection mode.')
+                exit(-1)
             parent1 = deepcopy(parents[0][:n])
             parent2 = deepcopy(parents[1][:n])
             child1, child2 = multi_objective_optimizer.model.operator.crossover_sbx(parent1, parent2, self.eta_d)
